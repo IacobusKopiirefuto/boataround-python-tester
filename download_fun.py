@@ -7,6 +7,8 @@ extracting relevant information about available boats, and processing the data.
 
 Functions:
 - down_page(url): Downloads a single page from Boataround's search results.
+- retry_down_page(url, max_retries=5) Retries downloading a page to handle
+  potential internet connection issues.
 - check_page(id_search): Checks if a page is the last page of the search results.
 - single_page_scraping(url): Downloads a single page and extracts search results for analysis.
 - process_list(search_list): Processes a list of search results, extracting boat information.
@@ -16,7 +18,8 @@ Functions:
   for a given destination and time frame.
 """
 
-import sys
+# import sys
+import time
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs
 import requests
@@ -24,9 +27,8 @@ import requests
 #from urllib3.exceptions import MaxRetryError
 from bs4 import BeautifulSoup
 
-
-# Eficienct for making multiple requests to the same domain
-# creates a Session object that persists parameters (e.g., headers, cookies) across requests
+# Efficient for making multiple requests to the same domain
+# creates a Session object that persists parameters (e.g. headers, cookies) across requests
 session = requests.Session()
 
 # usually there are no automatic retries
@@ -66,27 +68,33 @@ def down_page(url):
     #global session
     url = url.strip()
 
-    headers = {
-            'User-Agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-                )
-            }
+    #headers = {
+    #        'User-Agent': (
+    #            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+    #            '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    #            )
+    #        }
 
     try:
-        response = requests.get(url, headers, timeout=99999)
+        response = requests.get(url, timeout=99999)
         # response = requests.get(url, headers=headers, timeout=10, verify=False)
         response.raise_for_status()
         return response
     except requests.exceptions.SSLError as ssl_error:
         print(f"SSL Error: {ssl_error}")
-        sys.exit(1)
+        return None
+    #     sys.exit(1)
     except requests.exceptions.RequestException as error_name:
         print(f"Error occurred while fetching the page: {str(error_name)}")
-        sys.exit(1)
+        return None
+    #    sys.exit(1)
+    except Exception as broad_exception_caught:
+        print("An unexpected error occurred:", broad_exception_caught)
+        return None
+        # Handle other unexpected errors here
 
-
-    #while True:
+    #still_none = True
+    #while still_none::
     #    retries = 5  # Number of retries
     #    for attempt in range(retries):
     #        #print(f"Attempt: {attempt}")
@@ -118,6 +126,34 @@ def down_page(url):
         #    print(f"Error occurred while fetching the page: {str(error_name)}")
         #    sys.exit(1)
 
+def retry_down_page(url, max_retries=5):
+    """
+    Retries downloading a page to handle potential internet connection issues.
+    Deals with unstable internet connection.
+
+    Args:
+        url (str): The URL of the search page on bt2stag.boataround.com.
+        Expected format of the url is
+        `f"https://bt2stag.boataround.com/search" \
+        f"?destinations={destination_name}-1&checkIn={yyyy-mm-dd}&checkOut={yyyy-mm-dd}"`
+
+        max_retries (int, optional): The maximum number of retry attempts. Defaults to 5.
+
+    Returns:
+        requests.Response or None: The response object containing the downloaded page.
+            Returns None if the maximum number of retries is exceeded.
+    """
+    requests.Response: The response object containing the downloaded page.
+    None if maxim tries are exceeded.
+    """
+    for attempt in range(max_retries):
+        result = down_page(url)
+        if result is not None:
+            return result
+        print(f"Retry {attempt + 1}/{max_retries}... Waiting before the next attempt.")
+        time.sleep(10)  # Add a delay between retries
+    print(f"Max retries reached. Unable to fetch the page for URL: {url}")
+    return None
 
 
 def check_page(id_search):
@@ -151,15 +187,16 @@ def single_page_scraping(url):
            The list can be further analyzed for specific information.
     """
 
-    # somtimes we get "No results found. Please, try your search again!"
-    # Even thoug the page should exist.
+    # sometimes we get "No results found. Please, try your search again!"
+    # Even though the page should exist.
     # There it is necessary to retry the download
     retries = 5  # Number of retries
-    while True:
+    still_none = True
+    while still_none:
         for attempt in range(retries):
-            response = down_page(url)
+            #print("Attempting download:")
+            response = retry_down_page(url, max_retries=20)
             soup = BeautifulSoup(response.content, 'html.parser')
-
             # In HTML `id` must be unique where as `class` can be applied to many things.
             # Just in case that there are multiple `"search-results-list"` we look for
             # `"search"` id at first, so we get the right part.
@@ -175,6 +212,8 @@ def single_page_scraping(url):
             if cl_search_results_list is None:
                 if attempt < retries - 1:
                     print(f"Retry {attempt}: Section cl_search_results_list not found")
+                    print("Waiting before the next attempt.")
+                    time.sleep(2)  # Add a delay between retries
                     print(f"Retrying (Retry {attempt + 2}/{retries})...")
             #        print(f"{id_search}\n\n")
                 else:
@@ -183,6 +222,8 @@ def single_page_scraping(url):
                     #session.close()  # Close the existing session
                     #session = requests.Session()  # Create a new session
             else:
+                #print("In the breaking part")
+                still_none = False
                 break
 
     search_list = cl_search_results_list.find_all("li", class_="search-result-wrapper mt-4")
@@ -234,8 +275,15 @@ def process_list(search_list):
         # Extract text from the 'span' with class 'mr-2'
         span_mr_2_text = item.find('span', class_='mr-2').text.strip()
 
-        # Extract text from the 'span' with class 'price-box__price ml-2'
-        price_text = item.find('span', class_='price-box__price ml-2').text.strip()
+
+        if item.find('span', class_='price-box__price ml-2') is not None:
+            # Extract text from the 'span' with class 'price-box__price ml-2'
+            price_text = item.find('span', class_='price-box__price ml-2').text.strip()
+        if item.find('span', class_='price-box__price') is not None:
+            price_text = item.find('span', class_='price-box__price').text.strip()
+        else:
+            price_text = ''
+            print("Price box is empty") # :\n{item}\n\n)
 
         # simple but less robust
         # second_li_value = item.find_all(
@@ -296,14 +344,18 @@ def process_list(search_list):
 
         # Find the 'div' with class 'search-result-right__charter'
         d_picture = item.find_all('div', class_='search-result-right__charter')
-
-        # Extract the 'alt' text from the 'img' tag
-#        img_alt = d_picture[0].find('img').get('alt', '')
+        if d_picture[0].find('img') is not None:
+            # Extract the 'alt' text from the 'img' tag
+            img_alt = d_picture[0].find('img').get('alt', '')
+        else:
+            print("right charter img not found")
+            img_alt = d_picture[0].find(
+                    'span', class_='search-result-right__charter-text').text.strip()
 
         # Append the extracted values to the page_data list
         page_data.append({
             'link': href_value,
-#            'charter_name': img_alt,
+            'charter_name': img_alt,
             'boat_name': span_mr_2_text,
             'boat_length': length_value,
             'price': price_text,
@@ -370,7 +422,7 @@ def gen_dates(start_date_str, end_date_str):
         # check if the current date is a saturday (weekday() returns 5 for saturday)
         if current_date.weekday() == 5:
             # append the formatted date to the list
-            saturdays.append(current_date.strftime('%y-%m-%d'))
+            saturdays.append(current_date.strftime('%Y-%m-%d'))
 
         # move to the next day
         current_date += timedelta(days=1)
