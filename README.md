@@ -60,7 +60,7 @@ start_date = '2024-05-01'
 end_date = '2024-09-30'
 boat_data = all_dates_scraping(destination, start_date, end_date)
 
-exc_export(date_data, file_name="{destination}_{start_date}_{end_date}")
+exc_export(date_data, file_name=f"{destination}_{start_date}_{end_date}")
 ```
 
 # To Do
