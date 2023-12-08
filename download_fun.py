@@ -142,9 +142,9 @@ def retry_down_page(url, max_retries=5):
     Returns:
         requests.Response or None: The response object containing the downloaded page.
             Returns None if the maximum number of retries is exceeded.
-    """
     requests.Response: The response object containing the downloaded page.
     None if maxim tries are exceeded.
+    """
     for attempt in range(max_retries):
         result = down_page(url)
         if result is not None:
