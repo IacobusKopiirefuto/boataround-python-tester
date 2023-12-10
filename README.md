@@ -9,27 +9,35 @@ It includes functions for downloading search pages, extracting boat information,
 
 `download_fun.py`:
 
-- **down_page(url):** Downloads a single page from Boataround's search results.
-- **retry_down_page(url, max_retries=5)** Retries downloading a page to handle potential internet connection issues.
-- **check_page(id_search):** Checks if a page is the last page of the search results.
-- **single_page_scraping(url):** Downloads a single page and extracts search results for analysis.
-- **process_list(search_list):** Processes a list of search results, extracting boat information.
-- **all_pages_scraping(url):** Iterates through all pages of search results and downloads them.
-- **gen_dates(start_date_str, end_date_str):** Generates a list of dates between two given dates.
-- **all_dates_scraping(destination, start_date_str, end_date_str):** Downloads boat information for a given estination and time frame.
+- `down_page(url)`: Downloads a single page from Boataround's search results.
+- `retry_down_page(url, max_retries=5)`: Retries downloading a page to handle potential internet connection issues.
+- `check_page(id_search)`: Checks if a page is the last page of the search results.
+- `single_page_scraping(url)`: Downloads a single page and extracts search results for analysis.
+- `process_list(search_list)`: Processes a list of search results, extracting boat information.
+- `all_pages_scraping(url)`: Iterates through all pages of search results and downloads them.
+- `gen_dates(start_date_str, end_date_str)`: Generates a list of dates between two given dates.
+- `all_dates_scraping(destination, start_date_str, end_date_str)`: Downloads boat information for a given estination and time frame.
 
 `excel_export.py`:
 
-- **exc_export(data, file_name='output'):** Writes a list of dictionaries,each containing the information about available boats
+- `exc_export(data, file_name='output')`: Writes a list of dictionaries,each containing the information about available boats
     into an Excel file. Formats data into their proper Excel formats.
     Uses pandas.
 
 `excel_export_light.py`:
 
-- **exc_export(data, file_name='output')**
+- `exc_export(data, file_name='output')`
 - Writes a list of dictionaries,each containing the information about available boats
     into an Excel file. Does **not** formats data. Simple and lighter. Uses openpyxl.
-  
+
+`selenium_web_test.py`:
+
+- `wait_for_element(driver, by_attribute, value, timeout=10)`: Waits for the specified element to be present on the webpage.
+- `close_overlay(driver)`: Closes an overlay on the website if present; otherwise, continues script execution.
+- `dates_from_url(url)`: Extracts check-in and check-out values from the URL.
+- `dates_from_list(date_listed)`: Extracts check-in and check-out dates from a string in the format 'DD/MM/YYYY - DD/MM/YYYY'.
+- `web_test()`: Executes the entire website testing process.
+
 ## Usage
 
 Create virtual enviroment and install dependencies.
@@ -68,7 +76,8 @@ exc_export(date_data, file_name=f"{destination}_{start_date}_{end_date}")
 ```
 
 Task 2
-```
+
+```python
 from selenium_web_test import web_test
 
 web_test()
