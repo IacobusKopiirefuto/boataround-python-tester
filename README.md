@@ -34,6 +34,7 @@ It includes functions for downloading search pages, extracting boat information,
 
 Create virtual enviroment and install dependencies.
 If you are using `excel_export_light.py` you can skip `pandas`.
+Second task only needs `selenium`.
 
 ```bash
 mkdir env
@@ -44,10 +45,13 @@ pip install beautifulsoup4
 pip install requests
 pip install openpyxl
 pip install pandas
+pip install selenium
 ```
 
 To use the script, import it into your project and call the desired functions with appropriate parameters.
 The functions return relevant data structures containing information about available boats.
+
+Task 1
 
 ```python
 from download_fun import all_dates_scraping
@@ -63,14 +67,31 @@ boat_data = all_dates_scraping(destination, start_date, end_date)
 exc_export(date_data, file_name=f"{destination}_{start_date}_{end_date}")
 ```
 
+Task 2
+```
+from selenium_web_test import web_test
+
+web_test()
+```
+
+
+
 # To Do
 
-- Finish Task 2
+Task 1:
+
 - Refract code in `single_page_scraping(url)` into smaller parts
 - Divide `download_fun.py` into multiple files.
 - Find out reasonable values for:
     - `timeout` in `down_page(url)`
     - `max_retries` in `(url, max_retries=5)`
-- replace `while still_none` with `for attempt in range(max_retries)` in `single_page_scraping(url)` 
+- Replace `while still_none` with `for attempt in range(max_retries)` in `single_page_scraping(url)`.
 - Complete data formatting in `excel_export.py`
 - Delete unuseful comments and commented code
+
+Task 2:
+
+- Add more rigorous ways for testing Expected Result.
+- Refract code in `web_test(url)` into smaller parts
+- replace `time.sleep()` with Selenium's [Waiting strategies](https://www.selenium.dev/documentation/webdriver/waits/)
+- share `dates_from_url(url)` with Task 1, almost exact same thing is used in `process_list()` in download_fun.py
