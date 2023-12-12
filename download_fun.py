@@ -353,7 +353,7 @@ def process_list(search_list):
 
         # Append the extracted values to the page_data list
         page_data.append({
-            'link': href_value,
+#            'link': href_value,
             'charter_name': img_alt,
             'boat_name': span_mr_2_text,
             'boat_length': length_value,

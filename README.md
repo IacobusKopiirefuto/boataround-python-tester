@@ -32,11 +32,13 @@ It includes functions for downloading search pages, extracting boat information,
 
 `selenium_web_test.py`:
 
+- `web_test(destinations="Croatia",
+             check_in="2024-06-01", check_out="2024-06-08", nth_boat_from_list = 2)`:
+        Executes the entire website testing process.
 - `wait_for_element(driver, by_attribute, value, timeout=10)`: Waits for the specified element to be present on the webpage.
 - `close_overlay(driver)`: Closes an overlay on the website if present; otherwise, continues script execution.
 - `dates_from_url(url)`: Extracts check-in and check-out values from the URL.
 - `dates_from_list(date_listed)`: Extracts check-in and check-out dates from a string in the format 'DD/MM/YYYY - DD/MM/YYYY'.
-- `web_test()`: Executes the entire website testing process.
 
 ## Usage
 
@@ -80,10 +82,8 @@ Task 2
 ```python
 from selenium_web_test import web_test
 
-web_test()
+web_test("Croatia", "2024-06-01", "2024-06-08", 2)
 ```
-
-
 
 # To Do
 
@@ -100,7 +100,7 @@ Task 1:
 
 Task 2:
 
-- Add more rigorous ways for testing Expected Result.
 - Refract code in `web_test(url)` into smaller parts
 - replace `time.sleep()` with Selenium's [Waiting strategies](https://www.selenium.dev/documentation/webdriver/waits/)
 - share `dates_from_url(url)` with Task 1, almost exact same thing is used in `process_list()` in download_fun.py
+- replace `too general exception Exception` with something more reasonable
